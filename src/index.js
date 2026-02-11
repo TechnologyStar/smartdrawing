@@ -11,6 +11,13 @@ import {
   handleAdminGetApiKeyStats
 } from './admin.js';
 import { handleLinuxDoLogin, handleLinuxDoCallback, handleGetLinuxDoInfo } from './linuxdo.js';
+import { handleImageToImage, handleUploadImage } from './image.js';
+import {
+  handleBatchGenerate,
+  handleGetBatchStatus,
+  handleGetUserBatches,
+  handleProcessBatch
+} from './batch.js';
 
 export default {
   async fetch(request, env) {
@@ -57,6 +64,16 @@ export default {
       // 图片生成
       'POST /api/generate': () => handleGenerate(request, env),
       'GET /api/records': () => handleGetRecords(request, env),
+
+      // 图片改图
+      'POST /api/image-to-image': () => handleImageToImage(request, env),
+      'POST /api/upload-image': () => handleUploadImage(request, env),
+
+      // 批量生成
+      'POST /api/batch/generate': () => handleBatchGenerate(request, env),
+      'GET /api/batch/status': () => handleGetBatchStatus(request, env),
+      'GET /api/batch/list': () => handleGetUserBatches(request, env),
+      'POST /api/batch/process': () => handleProcessBatch(request, env),
 
       // 管理员 - 基础功能
       'POST /api/admin/codes': () => handleCreateCode(request, env),

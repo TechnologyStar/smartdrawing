@@ -1,0 +1,17 @@
+{
+  "name": "fireworks-image-platform",
+  "version": "1.0.0",
+  "description": "Fireworks FLUX 生图平台 - 支持换取码、用户管理、记录查询",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "keywords": ["cloudflare", "workers", "fireworks", "flux", "image-generation"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

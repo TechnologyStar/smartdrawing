@@ -1,0 +1,15 @@
+# 环境变量示例文件
+# 复制此文件为 .dev.vars 用于本地开发
+
+# Fireworks API Key
+# 从 https://fireworks.ai/ 获取
+FIREWORKS_API_KEY=your_fireworks_api_key_here
+
+# JWT Secret
+# 用于签名 JWT Token，建议使用随机字符串
+JWT_SECRET=your_jwt_secret_key_here
+
+# 注意：
+# 1. .dev.vars 文件仅用于本地开发（wrangler dev）
+# 2. 生产环境请使用 wrangler secret put 命令设置密钥
+# 3. 不要将 .dev.vars 提交到 Git 仓库

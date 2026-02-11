@@ -5,6 +5,7 @@
 - Node.js 16+
 - Cloudflare 账号
 - Fireworks AI API Key
+- （可选）Linux Do Connect 应用凭证
 
 ## 步骤 1：安装 Wrangler CLI
 
@@ -47,13 +48,28 @@ id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # 替换这里
 
 ### 4.1 设置 Fireworks API Key
 
-访问 [Fireworks AI](https://fireworks.ai/) 获取 API Key，然后运行：
+访问 [Fireworks AI](https://fireworks.ai/) 获取 API Key。
+
+#### 单个 Key（基础配置）
 
 ```bash
 wrangler secret put FIREWORKS_API_KEY
 ```
 
-输入你的 API Key 并回车。
+#### 多个 Key（推荐，负载均衡）
+
+**方式 1：逗号分隔**
+```bash
+wrangler secret put FIREWORKS_API_KEYS
+# 输入：key1,key2,key3
+```
+
+**方式 2：编号方式**
+```bash
+wrangler secret put FIREWORKS_API_KEY_1
+wrangler secret put FIREWORKS_API_KEY_2
+wrangler secret put FIREWORKS_API_KEY_3
+```
 
 ### 4.2 设置 JWT Secret
 
@@ -64,6 +80,20 @@ wrangler secret put JWT_SECRET
 ```
 
 输入一个随机字符串（建议 32 位以上），例如：`your-super-secret-jwt-key-here`
+
+### 4.3 设置 Linux Do OAuth（可选）
+
+如果需要支持 Linux Do 登录，访问 [Linux Do Connect](https://connect.linux.do) 申请应用：
+
+1. 填写应用信息
+2. 设置回调地址：`https://your-worker-url.workers.dev/api/linuxdo/callback`
+3. 获取 Client ID 和 Client Secret
+4. 配置密钥：
+
+```bash
+wrangler secret put LINUXDO_CLIENT_ID
+wrangler secret put LINUXDO_CLIENT_SECRET
+```
 
 ## 步骤 5：修改管理员密码（可选）
 

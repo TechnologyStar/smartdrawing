@@ -12,5 +12,10 @@ id = "your_kv_namespace_id"  # 部署时需要替换
 ADMIN_PASSWORD = "admin123"  # 管理员密码，建议部署后修改
 
 # 密钥（通过 wrangler secret put 设置）
-# FIREWORKS_API_KEY = "your_fireworks_api_key"
+# FIREWORKS_API_KEY = "your_fireworks_api_key"  # 单个 API Key
+# FIREWORKS_API_KEYS = "key1,key2,key3"  # 多个 API Key（逗号分隔）
+# FIREWORKS_API_KEY_1 = "key1"  # 或使用编号方式
+# FIREWORKS_API_KEY_2 = "key2"
 # JWT_SECRET = "your_jwt_secret_key"
+# LINUXDO_CLIENT_ID = "your_linuxdo_client_id"  # Linux Do OAuth Client ID
+# LINUXDO_CLIENT_SECRET = "your_linuxdo_client_secret"  # Linux Do OAuth Client Secret

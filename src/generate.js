@@ -1,4 +1,6 @@
 import { jsonResponse, getUserFromRequest, safeJson, sleep } from './utils.js';
+import { moderatePrompt, logModerationFailure } from './moderation.js';
+import { getNextApiKey, recordApiKeyUsage } from './apikeys.js';
 
 // 生成图片
 export async function handleGenerate(request, env) {
@@ -19,6 +21,17 @@ export async function handleGenerate(request, env) {
       return jsonResponse({ error: 'prompt 必填' }, 400);
     }
 
+    // 内容审核
+    const moderation = moderatePrompt(body.prompt);
+    if (!moderation.passed) {
+      await logModerationFailure(env, user.username, body.prompt, moderation.reason);
+      return jsonResponse({
+        error: '内容审核未通过',
+        reason: moderation.reason,
+        moderated: true
+      }, 400);
+    }
+
     // 扣除积分
     user.credits -= 1;
     user.totalGenerated += 1;
@@ -27,12 +40,15 @@ export async function handleGenerate(request, env) {
     const model = 'flux-kontext-pro';
     const createUrl = `https://api.fireworks.ai/inference/v1/workflows/accounts/fireworks/models/${model}`;
 
+    // 获取下一个可用的 API Key
+    const apiKey = await getNextApiKey(env);
+
     // 1) 创建任务
     const createResp = await fetch(createUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${env.FIREWORKS_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         prompt: body.prompt,
@@ -51,6 +67,8 @@ export async function handleGenerate(request, env) {
       user.credits += 1;
       user.totalGenerated -= 1;
       await env.DB.put(`user:${user.username}`, JSON.stringify(user));
+      // 记录 API Key 使用失败
+      await recordApiKeyUsage(env, apiKey, false, JSON.stringify(createJson));
       return jsonResponse({ error: '创建任务失败', details: createJson }, 502);
     }
 
@@ -59,6 +77,7 @@ export async function handleGenerate(request, env) {
       user.credits += 1;
       user.totalGenerated -= 1;
       await env.DB.put(`user:${user.username}`, JSON.stringify(user));
+      await recordApiKeyUsage(env, apiKey, false, '缺少 request_id');
       return jsonResponse({ error: '缺少 request_id', details: createJson }, 502);
     }
 
@@ -75,7 +94,7 @@ export async function handleGenerate(request, env) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${env.FIREWORKS_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({ id: requestId }),
       });
@@ -88,8 +107,12 @@ export async function handleGenerate(request, env) {
           rj?.result?.sample || rj?.result?.url || (typeof rj?.result === 'string' ? rj.result : null);
 
         if (!imageUrl) {
+          await recordApiKeyUsage(env, apiKey, false, 'Ready 但无图片 URL');
           return jsonResponse({ error: 'Ready 但无图片 URL', raw: rj }, 502);
         }
+
+        // 记录 API Key 使用成功
+        await recordApiKeyUsage(env, apiKey, true);
 
         // 保存生成记录
         const recordId = `record:${user.username}:${Date.now()}`;
@@ -117,6 +140,7 @@ export async function handleGenerate(request, env) {
         user.credits += 1;
         user.totalGenerated -= 1;
         await env.DB.put(`user:${user.username}`, JSON.stringify(user));
+        await recordApiKeyUsage(env, apiKey, false, `任务失败: ${rj?.status}`);
         return jsonResponse({ error: '任务失败', raw: rj }, 502);
       }
     }
@@ -125,6 +149,7 @@ export async function handleGenerate(request, env) {
     user.credits += 1;
     user.totalGenerated -= 1;
     await env.DB.put(`user:${user.username}`, JSON.stringify(user));
+    await recordApiKeyUsage(env, apiKey, false, '等待超时');
     return jsonResponse({ error: '等待超时', request_id: requestId, last }, 504);
   } catch (e) {
     return jsonResponse({ error: String(e.message || e) }, 500);

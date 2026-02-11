@@ -1,4 +1,6 @@
 import { jsonResponse, generateRedeemCode } from './utils.js';
+import { handleGetModerationLogs, handleAddSensitiveWord, handleGetSensitiveWords } from './moderation.js';
+import { handleGetApiKeyStats } from './apikeys.js';
 
 // 管理员登录验证
 function checkAdminAuth(request, env) {
@@ -152,6 +154,59 @@ export async function handleGetStats(request, env) {
       usedCodes,
       totalCredits,
     });
+  } catch (e) {
+    return jsonResponse({ error: String(e.message || e) }, 500);
+  }
+}
+
+// 获取审核记录（管理员）
+export async function handleAdminGetModerationLogs(request, env) {
+  if (!checkAdminAuth(request, env)) {
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { 'WWW-Authenticate': 'Basic realm="Admin Area"' },
+    });
+  }
+
+  return handleGetModerationLogs(request, env);
+}
+
+// 添加敏感词（管理员）
+export async function handleAdminAddSensitiveWord(request, env) {
+  if (!checkAdminAuth(request, env)) {
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { 'WWW-Authenticate': 'Basic realm="Admin Area"' },
+    });
+  }
+
+  return handleAddSensitiveWord(request, env);
+}
+
+// 获取敏感词列表（管理员）
+export async function handleAdminGetSensitiveWords(request, env) {
+  if (!checkAdminAuth(request, env)) {
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { 'WWW-Authenticate': 'Basic realm="Admin Area"' },
+    });
+  }
+
+  return handleGetSensitiveWords(request, env);
+}
+
+// 获取 API Key 统计（管理员）
+export async function handleAdminGetApiKeyStats(request, env) {
+  if (!checkAdminAuth(request, env)) {
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { 'WWW-Authenticate': 'Basic realm="Admin Area"' },
+    });
+  }
+
+  try {
+    const stats = await handleGetApiKeyStats(request, env);
+    return jsonResponse(stats);
   } catch (e) {
     return jsonResponse({ error: String(e.message || e) }, 500);
   }

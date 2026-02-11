@@ -1,6 +1,16 @@
 import { handleRegister, handleLogin, handleGetUserInfo, handleRedeem } from './auth.js';
 import { handleGenerate, handleGetRecords } from './generate.js';
-import { handleCreateCode, handleGetUsers, handleGetAllRecords, handleGetStats } from './admin.js';
+import {
+  handleCreateCode,
+  handleGetUsers,
+  handleGetAllRecords,
+  handleGetStats,
+  handleAdminGetModerationLogs,
+  handleAdminAddSensitiveWord,
+  handleAdminGetSensitiveWords,
+  handleAdminGetApiKeyStats
+} from './admin.js';
+import { handleLinuxDoLogin, handleLinuxDoCallback, handleGetLinuxDoInfo } from './linuxdo.js';
 
 export default {
   async fetch(request, env) {
@@ -33,16 +43,34 @@ export default {
 
     // API 路由
     const routes = {
+      // 用户认证
       'POST /api/register': () => handleRegister(request, env),
       'POST /api/login': () => handleLogin(request, env),
       'GET /api/user': () => handleGetUserInfo(request, env),
       'POST /api/redeem': () => handleRedeem(request, env),
+
+      // Linux Do OAuth
+      'GET /api/linuxdo/login': () => handleLinuxDoLogin(request, env),
+      'GET /api/linuxdo/callback': () => handleLinuxDoCallback(request, env),
+      'GET /api/linuxdo/info': () => handleGetLinuxDoInfo(request, env),
+
+      // 图片生成
       'POST /api/generate': () => handleGenerate(request, env),
       'GET /api/records': () => handleGetRecords(request, env),
+
+      // 管理员 - 基础功能
       'POST /api/admin/codes': () => handleCreateCode(request, env),
       'GET /api/admin/users': () => handleGetUsers(request, env),
       'GET /api/admin/records': () => handleGetAllRecords(request, env),
       'GET /api/admin/stats': () => handleGetStats(request, env),
+
+      // 管理员 - 审核功能
+      'GET /api/admin/moderation/logs': () => handleAdminGetModerationLogs(request, env),
+      'POST /api/admin/moderation/words': () => handleAdminAddSensitiveWord(request, env),
+      'GET /api/admin/moderation/words': () => handleAdminGetSensitiveWords(request, env),
+
+      // 管理员 - API Key 统计
+      'GET /api/admin/apikeys': () => handleAdminGetApiKeyStats(request, env),
     };
 
     const routeKey = `${request.method} ${url.pathname}`;
